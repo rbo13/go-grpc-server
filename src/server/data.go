@@ -4,7 +4,8 @@ import (
 	pb "github.com/whaangbuu/go-grpc-server/pb"
 )
 
-var employees = []pb.Employee{
+// Employees ...
+var Employees = []pb.Employee{
 	pb.Employee{
 		Id:                  1,
 		BadgeNumber:         2080,

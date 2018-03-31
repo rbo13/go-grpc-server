@@ -1,14 +1,17 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"net"
 
+	"github.com/whaangbuu/go-grpc-server/pb"
+	emp "github.com/whaangbuu/go-grpc-server/src/server"
 	context "golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-
-	"github.com/whaangbuu/go-grpc-server/pb"
+	"google.golang.org/grpc/metadata"
 )
 
 const port = ":9000"
@@ -32,7 +35,17 @@ func main() {
 type employeeService struct{}
 
 func (s *employeeService) GetByBadgeNumber(ctx context.Context, req *pb.GetByBadgeNumberRequest) (*pb.EmployeeResponse, error) {
-	return nil, nil
+	if md, ok := metadata.FromOutgoingContext(ctx); ok {
+		fmt.Printf("Metadata Received: %v\n", md)
+	}
+
+	for _, e := range emp.Employees {
+		if req.BadgeNumber == e.BadgeNumber {
+			return &pb.EmployeeResponse{Employee: &e}, nil
+		}
+	}
+
+	return nil, errors.New("Employee not found")
 }
 
 func (s *employeeService) GetAll(req *pb.GetAllRequest, stream pb.EmployeeService_GetAllServer) error {
