@@ -85,5 +85,21 @@ func (s *employeeService) Save(ctx context.Context, req *pb.EmployeeRequest) (*p
 }
 
 func (s *employeeService) SaveAll(stream pb.EmployeeService_SaveAllServer) error {
+	for {
+		empl, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		emp.Employees = append(emp.Employees, *empl.Employee)
+		stream.Send(&pb.EmployeeResponse{Employee: empl.Employee})
+	}
+
+	for _, employee := range emp.Employees {
+		fmt.Println(employee)
+	}
 	return nil
 }
