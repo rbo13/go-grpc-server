@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net"
 
@@ -56,7 +57,27 @@ func (s *employeeService) GetAll(req *pb.GetAllRequest, stream pb.EmployeeServic
 }
 
 func (s *employeeService) AddPhoto(stream pb.EmployeeService_AddPhotoServer) error {
-	return nil
+	md, ok := metadata.FromOutgoingContext(stream.Context())
+
+	if ok {
+		fmt.Printf("Receiving photo for badge number: %v\n", md["badgenumber"][0])
+	}
+	imgData := []byte{}
+
+	for {
+		data, err := stream.Recv()
+		if err == io.EOF {
+			fmt.Printf("File received with length: %v\n", len(imgData))
+			return stream.SendAndClose(&pb.AddPhotoResponse{IsOk: true})
+		}
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Received %v bytes\n", len(data.Data))
+		imgData = append(imgData, data.Data...)
+	}
 }
 
 func (s *employeeService) Save(ctx context.Context, req *pb.EmployeeRequest) (*pb.EmployeeResponse, error) {
